@@ -12,7 +12,7 @@ import com.shelfcount.app.data.local.entity.StockTransactionEntity
 
 @Database(
     entities = [CategoryEntity::class, ItemEntity::class, StockTransactionEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(RoomTypeConverters::class)

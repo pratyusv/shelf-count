@@ -171,6 +171,90 @@ class InventoryViewModelTest {
 
             assertTrue(itemRepo.items.value.isEmpty())
         }
+
+    @Test
+    fun saveItem_sameNameSameCategory_mergesQuantityCaseInsensitive() =
+        runTest {
+            val itemRepo = FakeItemRepository()
+            val categoryRepo = FakeCategoryRepository()
+            val now = System.currentTimeMillis()
+            itemRepo.items.value =
+                listOf(
+                    Item(
+                        id = 1,
+                        name = "Milk",
+                        categoryId = 1,
+                        quantity = 2.0,
+                        unit = UnitType.LITER,
+                        lowStockThreshold = 1.0,
+                        notes = null,
+                        isArchived = false,
+                        createdAtEpochMillis = now,
+                        updatedAtEpochMillis = now,
+                    ),
+                )
+            val viewModel = InventoryViewModel(itemRepo, categoryRepo, SavedStateHandle())
+
+            viewModel.openAddItem()
+            viewModel.saveItem(
+                ItemDraft(
+                    id = null,
+                    name = "  milk  ",
+                    categoryId = 1,
+                    quantity = 1.5,
+                    unit = UnitType.LITER,
+                    lowStockThreshold = 1.0,
+                    notes = null,
+                ),
+            )
+            advanceUntilIdle()
+
+            assertEquals(1, itemRepo.items.value.size)
+            assertEquals(3.5, itemRepo.items.value.first().quantity, 0.0)
+            assertEquals("Milk", itemRepo.items.value.first().name)
+        }
+
+    @Test
+    fun saveItem_sameNameDifferentCategory_createsSecondItem() =
+        runTest {
+            val itemRepo = FakeItemRepository()
+            val categoryRepo = FakeCategoryRepository()
+            val now = System.currentTimeMillis()
+            itemRepo.items.value =
+                listOf(
+                    Item(
+                        id = 1,
+                        name = "Milk",
+                        categoryId = 1,
+                        quantity = 2.0,
+                        unit = UnitType.LITER,
+                        lowStockThreshold = 1.0,
+                        notes = null,
+                        isArchived = false,
+                        createdAtEpochMillis = now,
+                        updatedAtEpochMillis = now,
+                    ),
+                )
+            val viewModel = InventoryViewModel(itemRepo, categoryRepo, SavedStateHandle())
+
+            viewModel.openAddItem()
+            viewModel.saveItem(
+                ItemDraft(
+                    id = null,
+                    name = "milk",
+                    categoryId = 2,
+                    quantity = 1.0,
+                    unit = UnitType.LITER,
+                    lowStockThreshold = 1.0,
+                    notes = null,
+                ),
+            )
+            advanceUntilIdle()
+
+            assertEquals(2, itemRepo.items.value.size)
+            assertTrue(itemRepo.items.value.any { it.categoryId == 1 && it.name == "Milk" })
+            assertTrue(itemRepo.items.value.any { it.categoryId == 2 && it.name == "milk" })
+        }
 }
 
 private class FakeItemRepository : ItemRepository {

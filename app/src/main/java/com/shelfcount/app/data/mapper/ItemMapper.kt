@@ -1,5 +1,6 @@
 package com.shelfcount.app.data.mapper
 
+import com.shelfcount.app.core.common.normalizeItemNameKey
 import com.shelfcount.app.data.local.entity.ItemEntity
 import com.shelfcount.app.domain.model.Item
 
@@ -24,6 +25,7 @@ fun Item.toEntity(): ItemEntity =
     ItemEntity(
         id = id,
         name = name,
+        normalizedName = normalizeItemNameKey(name),
         categoryId = categoryId,
         quantity = quantity,
         unit = unit,

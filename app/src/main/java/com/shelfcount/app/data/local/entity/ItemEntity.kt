@@ -19,7 +19,7 @@ import com.shelfcount.app.domain.model.UnitType
         ),
     ],
     indices = [
-        Index(value = ["name", "category_id"], unique = true),
+        Index(value = ["normalized_name", "category_id"], unique = true),
         Index(value = ["is_archived", "name"]),
         Index(value = ["is_archived", "updated_at_epoch_millis"]),
         Index(value = ["category_id", "is_archived"]),
@@ -32,6 +32,8 @@ data class ItemEntity(
     val id: Long = 0L,
     @ColumnInfo(name = "name")
     val name: String,
+    @ColumnInfo(name = "normalized_name")
+    val normalizedName: String,
     @ColumnInfo(name = "category_id")
     val categoryId: Int,
     @ColumnInfo(name = "quantity")

@@ -3,6 +3,8 @@ package com.shelfcount.app.presentation.inventory
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.shelfcount.app.core.common.normalizeItemName
+import com.shelfcount.app.core.common.normalizeItemNameKey
 import com.shelfcount.app.domain.model.Item
 import com.shelfcount.app.domain.model.sortedForDisplay
 import com.shelfcount.app.domain.repository.CategoryRepository
@@ -188,28 +190,58 @@ class InventoryViewModel
             viewModelScope.launch {
                 val now = System.currentTimeMillis()
                 runCatching {
+                    val normalizedName = normalizeItemName(draft.name)
+                    val normalizedNameKey = normalizeItemNameKey(normalizedName)
                     if (draft.id == null) {
-                        itemRepository.addItem(
-                            Item(
-                                id = 0,
-                                name = draft.name,
-                                categoryId = draft.categoryId,
-                                quantity = draft.quantity,
-                                unit = draft.unit,
-                                lowStockThreshold = draft.lowStockThreshold,
-                                notes = draft.notes,
-                                isArchived = false,
-                                createdAtEpochMillis = now,
-                                updatedAtEpochMillis = now,
-                            ),
-                        )
+                        val categoryItems = itemRepository.getItemsByCategory(draft.categoryId)
+                        val existingItem =
+                            categoryItems.firstOrNull { item ->
+                                item.categoryId == draft.categoryId &&
+                                    normalizeItemNameKey(item.name) == normalizedNameKey
+                            }
+                        if (existingItem == null) {
+                            itemRepository.addItem(
+                                Item(
+                                    id = 0,
+                                    name = normalizedName,
+                                    categoryId = draft.categoryId,
+                                    quantity = draft.quantity,
+                                    unit = draft.unit,
+                                    lowStockThreshold = draft.lowStockThreshold,
+                                    notes = draft.notes,
+                                    isArchived = false,
+                                    createdAtEpochMillis = now,
+                                    updatedAtEpochMillis = now,
+                                ),
+                            )
+                        } else {
+                            require(existingItem.unit == draft.unit) {
+                                "Item already exists with a different unit. Edit existing item instead."
+                            }
+                            itemRepository.updateItem(
+                                existingItem.copy(
+                                    quantity = existingItem.quantity + draft.quantity,
+                                    updatedAtEpochMillis = now,
+                                ),
+                            )
+                        }
                     } else {
+                        val categoryItems = itemRepository.getItemsByCategory(draft.categoryId)
+                        val existingConflict =
+                            categoryItems.firstOrNull { item ->
+                                item.id != draft.id &&
+                                    item.categoryId == draft.categoryId &&
+                                    normalizeItemNameKey(item.name) == normalizedNameKey
+                            }
+                        require(existingConflict == null) {
+                            "Item already exists in this category."
+                        }
                         val current =
                             latestItems.firstOrNull { it.id == draft.id }
                                 ?: throw IllegalArgumentException("Item not found.")
                         itemRepository.updateItem(
                             current.copy(
-                                name = draft.name,
+                                name = normalizedName,
                                 categoryId = draft.categoryId,
                                 quantity = draft.quantity,
                                 unit = draft.unit,
