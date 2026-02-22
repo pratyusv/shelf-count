@@ -1,0 +1,15 @@
+# Android / Gradle
+.gradle/
+build/
+*/build/
+local.properties
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+
+# Project docs (local planning only)
+docs/

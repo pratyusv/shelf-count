@@ -1,0 +1,53 @@
+build:
+  maxIssues: 200
+
+config:
+  validation: false
+
+style:
+  MaxLineLength:
+    active: false
+  MagicNumber:
+    active: false
+  ThrowsCount:
+    active: false
+  ReturnCount:
+    active: false
+  UnusedPrivateMember:
+    active: false
+  UseRequire:
+    active: false
+
+complexity:
+  LongMethod:
+    active: false
+  LongParameterList:
+    active: false
+  CyclomaticComplexMethod:
+    active: false
+  TooManyFunctions:
+    active: false
+
+naming:
+  FunctionNaming:
+    active: true
+    functionPattern: "([a-z][a-zA-Z0-9]*|[A-Z][a-zA-Z0-9]*)"
+  MatchingDeclarationName:
+    active: false
+
+performance:
+  SpreadOperator:
+    active: false
+
+formatting:
+  active: true
+  ImportOrdering:
+    active: false
+  Indentation:
+    active: false
+  MaximumLineLength:
+    active: false
+  ArgumentListWrapping:
+    active: false
+  Wrapping:
+    active: false
